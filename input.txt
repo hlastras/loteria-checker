@@ -1,0 +1,18 @@
+1.	2.						
+1.	Barcelona-Young Boys	1	1							
+2.	B. Leverkusen-Milan	X	1							
+3.	Borussia Dortmund-Celtic	1	1							
+4.	Inter de Milán-Estrella Roja	1	1							
+5.	Slovan Bratislava-Manch City	2	2							
+6.	Arsenal-PSG	1	X							
+7.	Girona-Feyenoord	2	1							
+8.	Aston Villa-Bayern Munich	2	2							
+9.	Dinamo Zagreb-Mónaco	1	2							
+10.	Lille-Real Madrid	2	2							
+11.	Liverpool-Bolonia	1	1							
+12.	Leipzig-Juventus	2	X							
+13.	Real Sociedad-Anderlecht	X	1							
+14.	Athletic Club-Az Alkmaar	1	1							
+15.	Benfica- At. Madrid	2-0
+
+02 OCT 2024
