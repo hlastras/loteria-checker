@@ -1,5 +1,6 @@
 import sys
 import re
+import argparse
 
 def parse_input_file(input_file):
     """
@@ -74,6 +75,11 @@ def parse_result_file(result_file):
     lines = [line.strip() for line in lines if line.strip()]
     actual_results = {}
 
+    for i, line in enumerate(lines):
+        # Replace 'P-15 ' with '15. ' at the start of the line
+        if line.startswith('P-15'):
+            lines[i] = '15.' + line[5:]
+
     # Determine the format based on the content
     # If lines alternate between match info and result, it's double line format
     # Otherwise, it's single line format
@@ -114,16 +120,16 @@ def parse_result_file(result_file):
 
     return actual_results
 
-def calculate_aciertos(columns, predictions, actual_results):
+def calculate_results(columns, predictions, actual_results, count_errors=False):
     """
-    Compare predictions with actual results and calculate hits per column.
+    Compare predictions with actual results and calculate hits or errors per column.
     Returns:
-        - counts: list with number of hits per column
-        - table: list of tuples (match_num, list indicating 'x' or '')
+        - counts: list with number of hits or errors per column
+        - table: list of tuples (match_num, list indicating 'x' or '-')
     """
     num_columns = len(columns)
     counts = [0] * num_columns
-    table = []  # Each element is (match_num, [x or ''])
+    table = []  # Each element is (match_num, [x or '-'])
 
     for match_num in sorted(predictions.keys()):
         pred_list = predictions[match_num]
@@ -132,36 +138,52 @@ def calculate_aciertos(columns, predictions, actual_results):
         for i in range(num_columns):
             if actual is None:
                 # Match has not been played yet
-                row.append('')
+                row.append('-')
                 continue
             pred = pred_list[i].upper()
             actual_upper = actual.upper()
-            if '-' in actual:
-                # For match 15 with exact result prediction
-                # The prediction must match exactly
-                if pred == actual_upper:
-                    counts[i] += 1
-                    row.append('x')
+            if match_num == 15:
+                # Exact result prediction for match 15
+                if not count_errors:
+                    if pred == actual_upper:
+                        counts[i] += 1
+                        row.append('x')
+                    else:
+                        row.append('')
                 else:
-                    row.append('')
+                    if pred != actual_upper:
+                        counts[i] += 1
+                        row.append('x')
+                    else:
+                        row.append('')
             else:
-                # For matches 1-14, compare 1, X, 2, M
-                if pred == actual_upper:
-                    counts[i] += 1
-                    row.append('x')
+                # Standard 1, X, 2, M predictions
+                if not count_errors:
+                    if pred == actual_upper:
+                        counts[i] += 1
+                        row.append('x')
+                    else:
+                        row.append('')
                 else:
-                    row.append('')
+                    if pred != actual_upper:
+                        counts[i] += 1
+                        row.append('x')
+                    else:
+                        row.append('')
         table.append((match_num, row))
 
     return counts, table
 
-def format_output(columns, counts, table, input_file):
+def format_output(columns, counts, table, input_file, count_errors=False):
     """
     Format and print the output as specified.
     """
-    # Print hit counts
+    # Determine the label based on the mode
+    label = "fails" if count_errors else "hits"
+
+    # Print counts
     for i, count in enumerate(counts):
-        print(f"Bet {columns[i]}: {count} hits")
+        print(f"Bet {columns[i]}: {count} {label}")
     print()
 
     # Prepare the table
@@ -203,17 +225,20 @@ def format_output(columns, counts, table, input_file):
         print(row)
 
 def main():
-    if len(sys.argv) != 3:
-        print("Usage: python quiniela.py input.txt result.txt")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Validate quiniela results.")
+    parser.add_argument('input_file', help="Path to input.txt containing predictions.")
+    parser.add_argument('result_file', help="Path to result.txt containing actual results.")
+    parser.add_argument('--error', action='store_true', help="Count and display prediction errors instead of hits.")
+    args = parser.parse_args()
 
-    input_file = sys.argv[1]
-    result_file = sys.argv[2]
+    input_file = args.input_file
+    result_file = args.result_file
+    count_errors = args.error
 
     columns, predictions = parse_input_file(input_file)
     actual_results = parse_result_file(result_file)
-    counts, table = calculate_aciertos(columns, predictions, actual_results)
-    format_output(columns, counts, table, input_file)
+    counts, table = calculate_results(columns, predictions, actual_results, count_errors=count_errors)
+    format_output(columns, counts, table, input_file, count_errors=count_errors)
 
 if __name__ == "__main__":
     main()
